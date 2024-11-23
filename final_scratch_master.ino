@@ -48,10 +48,12 @@ void onReceive(const esp_now_recv_info *recv_info, const uint8_t *data, int data
       Serial.printf("Master to Slave 1: %.3f\n", values[2] / 1000.0);
       Serial.printf("Slave 1 to Slave 2: %.3f\n", values[1] / 1000.0);
       Serial.printf("Slave 2 to Slave 3: %.3f\n", values[0] / 1000.0);
+      Serial.printf("Total Time: %.3f\n", (values[0] +values[1]+values[2])/ 1000.0);
     } else {
       Serial.println("Error: Incorrect number of values in the message.");
     }
     digitalWrite(ledPin, LOW);  //Turn on the LED
+    Serial.println("Ready for next round. Type 'START' to send message.");
   }
 }
 
@@ -64,9 +66,9 @@ bool sendMessage(const uint8_t *peerAddress, const char *message) {
 
   // Check if the message was sent successfully
   if (result == ESP_OK) {
-    Serial.print("Message sent successfully");
+    Serial.println("Message sent successfully");
   } else {
-    Serial.print("Failed to send message");
+    Serial.println("Failed to send message");
   }
   return result == ESP_OK;
 }
