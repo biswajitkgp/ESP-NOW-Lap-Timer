@@ -17,6 +17,7 @@ const int hooterPin = 25;
 const int hooterDuration = 200;
 const int ledPin = 16;
 const char *message = "START";  // Define the message
+bool raceFlag = true;
 /*==========================================================================================================*/
 /*                      Callback function for receiving data (Parsing Finish Message)                       */
 /*==========================================================================================================*/
@@ -48,12 +49,13 @@ void onReceive(const esp_now_recv_info *recv_info, const uint8_t *data, int data
       Serial.printf("Master to Slave 1: %.3f\n", values[2] / 1000.0);
       Serial.printf("Slave 1 to Slave 2: %.3f\n", values[1] / 1000.0);
       Serial.printf("Slave 2 to Slave 3: %.3f\n", values[0] / 1000.0);
-      Serial.printf("Total Time: %.3f\n", (values[0] +values[1]+values[2])/ 1000.0);
+      Serial.printf("Total Time: %.3f\n", (values[0] + values[1] + values[2]) / 1000.0);
     } else {
       Serial.println("Error: Incorrect number of values in the message.");
     }
     digitalWrite(ledPin, LOW);  //Turn on the LED
     Serial.println("Ready for next round. Type 'START' to send message.");
+    raceFlag = true;
   }
 }
 
@@ -105,6 +107,9 @@ void setup() {
   memcpy(peerInfo.peer_addr, slave1Address, 6);
   peerInfo.channel = 0;  // Default channel
   peerInfo.encrypt = false;
+  
+  // Set the interface explicitly
+  peerInfo.ifidx = WIFI_IF_STA;
 
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
     Serial.println("Failed to add peer");
@@ -126,7 +131,7 @@ void loop() {
     String input = Serial.readStringUntil('\n');
     input.trim();  // Remove any trailing newlines or spaces
 
-    if (input == "START") {
+    if (input == "START" && raceFlag == true) {
 
       digitalWrite(hooterPin, HIGH);  //Turn on the Hooter
       digitalWrite(ledPin, HIGH);     //Turn off the LED
@@ -137,10 +142,11 @@ void loop() {
       } else {
         Serial.println("Failed to send message.");
       }
+      raceFlag = false;
       delay(hooterDuration);
       digitalWrite(hooterPin, LOW);
     } else {
-      Serial.println("Invalid input. Type 'START' to send.");
+      Serial.println("Invalid input. Wait for lap complete and type 'START' to send.");
     }
   }
 }
